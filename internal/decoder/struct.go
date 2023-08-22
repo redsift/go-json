@@ -726,7 +726,7 @@ func (d *structDecoder) DecodeStream(s *Stream, depth int64, p unsafe.Pointer) e
 				}
 			}
 		} else if s.DisallowUnknownFields {
-			return fmt.Errorf("json: unknown field %q", key)
+			return fmt.Errorf("json: unknown field %q in %q at depth %d. known: %v", key, d.structName, depth, d.fieldMap)
 		} else {
 			if err := s.skipValue(depth); err != nil {
 				return err
