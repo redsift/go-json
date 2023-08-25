@@ -11,6 +11,7 @@ import (
 	"unsafe"
 
 	"github.com/goccy/go-json/internal/errors"
+	"github.com/goccy/go-json/internal/errors/annotations"
 )
 
 type structFieldSet struct {
@@ -703,26 +704,29 @@ func (d *structDecoder) DecodeStream(s *Stream, depth int64, p unsafe.Pointer) e
 		s.cursor++
 		if field != nil {
 			if field.err != nil {
-				return field.err
+				return annotations.FieldKey(err, field.key)
 			}
 			if firstWin {
 				if _, exists := seenFields[field.fieldIdx]; exists {
 					if err := s.skipValue(depth); err != nil {
-						return err
+						return annotations.FieldKey(err, field.key)
 					}
 				} else {
 					if err := field.dec.DecodeStream(s, depth, unsafe.Pointer(uintptr(p)+field.offset)); err != nil {
-						return err
+						return annotations.FieldKey(err, field.key)
 					}
 					seenFieldNum++
 					if d.fieldUniqueNameNum <= seenFieldNum {
-						return s.skipObject(depth)
+						if err := s.skipObject(depth); err != nil {
+							return annotations.FieldKey(err, field.key)
+						}
+						return nil
 					}
 					seenFields[field.fieldIdx] = struct{}{}
 				}
 			} else {
 				if err := field.dec.DecodeStream(s, depth, unsafe.Pointer(uintptr(p)+field.offset)); err != nil {
-					return err
+					return annotations.FieldKey(err, field.key)
 				}
 			}
 		} else if s.DisallowUnknownFields {
@@ -745,6 +749,14 @@ func (d *structDecoder) DecodeStream(s *Stream, depth int64, p unsafe.Pointer) e
 }
 
 func (d *structDecoder) Decode(ctx *RuntimeContext, cursor, depth int64, p unsafe.Pointer) (int64, error) {
+	if depth > 0 {
+		return d.decode(ctx, cursor, depth, p)
+	}
+	ret, err := d.decode(ctx, cursor, depth, p)
+	return ret, annotations.StructName(err, d.structName)
+}
+
+func (d *structDecoder) decode(ctx *RuntimeContext, cursor, depth int64, p unsafe.Pointer) (int64, error) {
 	buf := ctx.Buf
 	depth++
 	if depth > maxDecodeNestingDepth {

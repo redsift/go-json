@@ -9,6 +9,7 @@ import (
 
 	"github.com/goccy/go-json/internal/decoder"
 	"github.com/goccy/go-json/internal/errors"
+	"github.com/goccy/go-json/internal/errors/annotations"
 	"github.com/goccy/go-json/internal/runtime"
 )
 
@@ -231,7 +232,7 @@ func (d *Decoder) DecodeWithOption(v interface{}, optFuncs ...DecodeOptionFunc) 
 		optFunc(s.Option)
 	}
 	if err := dec.DecodeStream(s, 0, header.ptr); err != nil {
-		return err
+		return annotations.Type(err, typ)
 	}
 	s.Reset()
 	return nil

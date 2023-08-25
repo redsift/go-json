@@ -6,6 +6,7 @@ import (
 	"unsafe"
 
 	"github.com/goccy/go-json/internal/errors"
+	"github.com/goccy/go-json/internal/errors/annotations"
 	"github.com/goccy/go-json/internal/runtime"
 )
 
@@ -154,7 +155,7 @@ func (d *sliceDecoder) DecodeStream(s *Stream, depth int64, p unsafe.Pointer) er
 				}
 
 				if err := d.valueDecoder.DecodeStream(s, depth, ep); err != nil {
-					return err
+					return annotations.SliceIndex(err, idx)
 				}
 				s.skipWhiteSpace()
 			RETRY:
