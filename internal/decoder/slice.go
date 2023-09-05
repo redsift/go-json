@@ -5,8 +5,8 @@ import (
 	"sync"
 	"unsafe"
 
+	"github.com/goccy/go-json/annotations"
 	"github.com/goccy/go-json/internal/errors"
-	"github.com/goccy/go-json/internal/errors/annotations"
 	"github.com/goccy/go-json/internal/runtime"
 )
 
